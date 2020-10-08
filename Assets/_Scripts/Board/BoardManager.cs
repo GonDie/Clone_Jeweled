@@ -1,24 +1,33 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class BoardManager : Singleton<BoardManager>
 {
+    const int PIECE_MATCH_THRESHOLD = 3;
+    const float DRAG_DISTANCE_THRESHOLD = 0.25f;
+    const float MOUSE_CLICK_THRESHOLD = 0.15f;
+
+    public Transform piecesContainer;
     public Transform boardContainer;
     public GameObject boardPiecePrefab;
+    public Transform[] spawnersTransform;
 
     [Header("Board Config")]
     [SerializeField] Vector2 _boardSize = new Vector2(8, 8);
+    public Vector2 BoardSize { get => _boardSize; }
     [SerializeField] Vector2 _pieceSize = Vector2.one;
-    [SerializeField] Vector2 _spacing = Vector2.zero;
-    [SerializeField] float _distanceThreshold = 0.25f;
+    Vector2 _spacing = Vector2.zero;
 
-    BoardPiece[,] _board;
+    BoardTile[,] _board;
 
     Camera _camera;
 
     MouseState _mouseState;
-    BoardPiece _selectedPiece;
+    BoardTile _selectedTile;
+
+    float _mouseHoldTimer = 0f;
 
     #region Tests Properties & Vars
     [Header("Tests")]
@@ -56,53 +65,134 @@ public class BoardManager : Singleton<BoardManager>
         Ray ray = _camera.ScreenPointToRay(Input.mousePosition);
         RaycastHit2D hitInfo = Physics2D.Raycast(ray.origin, ray.direction, Mathf.Infinity);
 
+        if (hitInfo.collider == null) return;
+
         switch (_mouseState)
         {
             case MouseState.Hovering:
-                if (hitInfo.collider == null) return;
 
                 if (Input.GetMouseButtonDown(0))
                 {
-                    _mouseState = MouseState.PieceSelected;
-                    _selectedPiece = hitInfo.collider.GetComponent<BoardPiece>();
+                    _mouseHoldTimer = 0f;
+                    _mouseState = MouseState.DragSelectedPiece;
+                    _selectedTile = hitInfo.collider.GetComponent<BoardTile>();
                 }
+
             break;
-            case MouseState.PieceSelected:
-                if(Input.GetMouseButtonUp(0))
+            case MouseState.DragSelectedPiece:
+
+                _mouseHoldTimer += Time.deltaTime;
+
+                if (Input.GetMouseButtonUp(0))
                 {
-                    _selectedPiece = null;
+                    if (_mouseHoldTimer <= MOUSE_CLICK_THRESHOLD)
+                    {
+                        _mouseState = MouseState.ClickSelectedPiece;
+                        return;
+                    }
+
+                    if (((Vector2)_selectedTile.Transform.position - hitInfo.point).magnitude < DRAG_DISTANCE_THRESHOLD)
+                    {
+                        _selectedTile = null;
+                        _mouseState = MouseState.Hovering;
+                        return;
+                    }
+
+                    float verticalDist = Mathf.Abs(_selectedTile.Transform.position.y - hitInfo.point.y);
+                    float horizontalDist = Mathf.Abs(_selectedTile.Transform.position.x - hitInfo.point.x);
+
+                    Direction dir;
+                    if (verticalDist > horizontalDist) //TODO: Match Pieces
+                        dir = _selectedTile.Transform.position.y > hitInfo.point.y ? Direction.Down : Direction.Up;
+                    else
+                        dir = _selectedTile.Transform.position.x > hitInfo.point.x ? Direction.Left : Direction.Right;
+
+                    if(CheckPossibleMatches(_selectedTile, _selectedTile.GetNeighbor(dir), _selectedTile.GetNeighbor(dir).MatchPiece.pieceType) || CheckPossibleMatches(_selectedTile.GetNeighbor(dir), _selectedTile, _selectedTile.MatchPiece.pieceType))
+                        ExchangeTilePieces(_selectedTile, _selectedTile.GetNeighbor(dir));
+                    else
+                    {
+                        //TODO: Cant do this
+                    }
+
+                    _selectedTile = null;
                     _mouseState = MouseState.Hovering;
-                    return;
+                    _mouseHoldTimer = 0f;
                 }
-
-                if (((Vector2)_selectedPiece.Transform.position - hitInfo.point).magnitude < _distanceThreshold)
-                    return;
-
-                float verticalDist = Mathf.Abs(_selectedPiece.Transform.position.y - hitInfo.point.y);
-                float horizontalDist = Mathf.Abs(_selectedPiece.Transform.position.x - hitInfo.point.x);
-
-                if(verticalDist > horizontalDist)
-                    Debug.Log(_selectedPiece.Transform.position.y > hitInfo.point.y ? "Down" : "Up");
-                else
-                    Debug.Log(_selectedPiece.Transform.position.x > hitInfo.point.x ? "Left" : "Right");
 
                 break;
+            case MouseState.ClickSelectedPiece:
+
+                if (Input.GetMouseButtonDown(0))
+                {
+                    _mouseHoldTimer = 0f;
+                    _mouseState = MouseState.ClickSelectedOtherPiece;
+                }
+
+            break;
+            case MouseState.ClickSelectedOtherPiece:
+
+                _mouseHoldTimer += Time.deltaTime;
+
+                if (_mouseHoldTimer > MOUSE_CLICK_THRESHOLD)
+                {
+                    _mouseHoldTimer = 0f;
+                    _mouseState = MouseState.ClickSelectedPiece;
+                    return;
+                }
+
+                if (Input.GetMouseButtonUp(0))
+                {
+                    BoardTile otherTile = hitInfo.collider.GetComponent<BoardTile>();
+
+                    if (_selectedTile == otherTile)
+                    {
+                        //TODO: Unselect
+                        _mouseState = MouseState.Hovering;
+                        Debug.Log("Deselect Piece");
+                    }
+                    else
+                    {
+                        Direction dir;
+                        if (_selectedTile.IsNeighbor(otherTile, out dir))
+                        {
+                            //TODO: Match Pieces
+                            if (CheckPossibleMatches(_selectedTile, otherTile, otherTile.MatchPiece.pieceType) || CheckPossibleMatches(otherTile, _selectedTile, _selectedTile.MatchPiece.pieceType))
+                                ExchangeTilePieces(_selectedTile, otherTile);
+                            else
+                            {
+                                //TODO: Cant do this
+                            }
+
+                            _selectedTile = null;
+                            _mouseState = MouseState.Hovering;
+                        }
+                        else
+                        {
+                            //TODO: Cant do this
+                            _mouseState = MouseState.ClickSelectedPiece;
+                        }
+                    }
+                }
+
+            break;
+            default:
+            break;
         }
 
         #region Tests
 
         if (displayNeighbor && _displayNeighbors != null)
         {
-            BoardPiece testNeighborPiece = hitInfo.collider.GetComponent<BoardPiece>();
+            BoardTile testNeighborTile = hitInfo.collider.GetComponent<BoardTile>();
 
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < (int)Direction.Count; i++)
             {
                 _displayNeighbors[i].gameObject.SetActive(false);
 
-                if (testNeighborPiece.GetNeighbor((Direction)i) != null)
+                if (testNeighborTile.GetNeighbor((Direction)i) != null)
                 {
                     _displayNeighbors[i].gameObject.SetActive(true);
-                    _displayNeighbors[i].position = testNeighborPiece.GetNeighbor((Direction)i).Transform.position;
+                    _displayNeighbors[i].position = testNeighborTile.GetNeighbor((Direction)i).Transform.position;
                     _displayNeighbors[i].GetComponent<TMPro.TMP_Text>().text = ((Direction)i).ToString();
                 }
             }
@@ -112,21 +202,21 @@ public class BoardManager : Singleton<BoardManager>
 
     void PrepareBoard()
     {
-        _board = new BoardPiece[(int)_boardSize.x, (int)_boardSize.y];
+        _board = new BoardTile[(int)_boardSize.x, (int)_boardSize.y];
 
-        BoardPiece piece = null;
-        Vector2 position = Vector2.zero;
+        BoardTile piece = null;
+        Vector3 position = Vector3.zero;
 
-        BoardPiece up = null;
-        BoardPiece right = null;
-        BoardPiece down = null;
-        BoardPiece left = null;
+        BoardTile up = null;
+        BoardTile right = null;
+        BoardTile down = null;
+        BoardTile left = null;
 
         for (int row = 0; row < _boardSize.y; row++)
         {
             for (int col = 0; col < _boardSize.x; col++)
             {
-                piece = Instantiate(boardPiecePrefab, boardContainer).GetComponent<BoardPiece>();
+                piece = Instantiate(boardPiecePrefab, boardContainer).GetComponent<BoardTile>();
                 _board[row, col] = piece;
             }
         }
@@ -151,7 +241,113 @@ public class BoardManager : Singleton<BoardManager>
                 else up = null;
 
                 _board[row, col].Init(position, up, right, down, left);
+
+                spawnersTransform[col].position = new Vector3(boardContainer.position.x + position.x, spawnersTransform[col].position.y, spawnersTransform[col].position.z);
             }
         }
+
+        FillBoard();
+    }
+
+    void FillBoard()
+    {
+        for (int col = 0; col < (int)_boardSize.x; col++)
+        {
+            StartCoroutine(FillColumn(col));
+        }
+
+        StartCoroutine(WaitForBoardReady(() => _mouseState = MouseState.Hovering));
+    }
+
+    IEnumerator FillColumn(int columnIndex)
+    {
+        MatchPiece piece = null;
+        BoardTile tile = null;
+        for(int row = 0; row < (int)_boardSize.y; row++)
+        {
+            piece = null;
+            tile = _board[row, columnIndex];
+            if (tile.MatchPiece != null)
+                continue;
+
+            while (piece == null)
+            {
+                tile = tile.GetNeighbor(Direction.Up);
+                if (tile == null)
+                    break;
+
+                piece = tile.MatchPiece;
+            }
+
+            if (piece == null)
+            {
+                ObjectPooler.Instance.GetObject(((PieceType)Random.Range(0, (int)PieceType.Count)).ToString(), (MatchPiece pooledPiece) =>
+                {
+                    piece = pooledPiece;
+                    piece.Transform.SetParent(piecesContainer);
+                    piece.Transform.position = spawnersTransform[columnIndex].position;
+                    _board[row, columnIndex].SetCurrentMatchPiece(piece, PieceMovementType.Drop, row);
+                });
+
+                yield return new WaitUntil(() => piece != null);
+            }
+            else
+                _board[row, columnIndex].SetCurrentMatchPiece(piece, PieceMovementType.Drop, row);
+        }
+    }
+
+    bool CheckPossibleMatches(BoardTile tile, BoardTile ignoreOther, PieceType type)
+    {
+        int matches = 1;
+
+        BoardTile nextTile = tile.GetNeighbor(Direction.Right);
+        while (nextTile != ignoreOther && nextTile != null && nextTile.MatchPiece.pieceType == type)
+        {
+            matches++;
+            nextTile = nextTile.GetNeighbor(Direction.Right);
+        }
+
+        nextTile = tile.GetNeighbor(Direction.Left);
+        while (nextTile != ignoreOther && nextTile != null && nextTile.MatchPiece.pieceType == type)
+        {
+            matches++;
+            nextTile = nextTile.GetNeighbor(Direction.Left);
+        }
+
+        if (matches >= PIECE_MATCH_THRESHOLD)
+            return true;
+
+        matches = 1;
+        nextTile = tile.GetNeighbor(Direction.Up);
+        while (nextTile != ignoreOther && nextTile != null && nextTile.MatchPiece.pieceType == type)
+        {
+            matches++;
+            nextTile = nextTile.GetNeighbor(Direction.Up);
+        }
+
+        nextTile = tile.GetNeighbor(Direction.Down);
+        while (nextTile != ignoreOther && nextTile != null && nextTile.MatchPiece.pieceType == type)
+        {
+            matches++;
+            nextTile = nextTile.GetNeighbor(Direction.Down);
+        }
+
+        return matches >= PIECE_MATCH_THRESHOLD;
+    }
+
+    void ExchangeTilePieces(BoardTile fromTile, BoardTile toTile)
+    {
+        _mouseState = MouseState.Standby;
+
+        MatchPiece piece = fromTile.MatchPiece;
+        fromTile.SetCurrentMatchPiece(toTile.MatchPiece, PieceMovementType.Move, 1);
+        toTile.SetCurrentMatchPiece(piece, PieceMovementType.Move, 1);
+    }
+
+    IEnumerator WaitForBoardReady(SimpleEvent callback)
+    {
+        IEnumerable<BoardTile> collection = _board.Cast<BoardTile>();
+        yield return new WaitUntil(() => collection.All(x => x.MatchPiece != null && x.MatchPiece.IsReady));
+        callback?.Invoke();
     }
 }

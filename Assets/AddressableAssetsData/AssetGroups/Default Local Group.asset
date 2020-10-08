@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Default Local Group
+  m_EditorClassIdentifier: 
+  m_GroupName: Default Local Group
+  m_Data:
+    m_SerializedData: []
+  m_GUID: f86f927d13c9da846b643e54bae7be20
+  m_SerializeEntries:
+  - m_GUID: 38482fa34514459419266f5e4b4922dc
+    m_Address: RedPiece
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - MatchPieceRed
+    m_MainAsset: {fileID: 3694914707150049868, guid: 38482fa34514459419266f5e4b4922dc,
+      type: 3}
+    m_TargetAsset: {fileID: 3694914707150049868, guid: 38482fa34514459419266f5e4b4922dc,
+      type: 3}
+  - m_GUID: c3e19c401ada5914081115817cec7ce4
+    m_Address: PurplePiece
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - MatchPiecePurple
+    m_MainAsset: {fileID: 4964179648110299087, guid: c3e19c401ada5914081115817cec7ce4,
+      type: 3}
+    m_TargetAsset: {fileID: 4964179648110299087, guid: c3e19c401ada5914081115817cec7ce4,
+      type: 3}
+  - m_GUID: e1d7e84c128656c41b0e714a8c8047d6
+    m_Address: BluePiece
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - MatchPieceBlue
+    m_MainAsset: {fileID: 4651813911494055184, guid: e1d7e84c128656c41b0e714a8c8047d6,
+      type: 3}
+    m_TargetAsset: {fileID: 4651813911494055184, guid: e1d7e84c128656c41b0e714a8c8047d6,
+      type: 3}
+  - m_GUID: ee824e45bb7c6af4f954dd5d32bd17f8
+    m_Address: GreenPiece
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - MatchPieceGreen
+    m_MainAsset: {fileID: 4134906911854451133, guid: ee824e45bb7c6af4f954dd5d32bd17f8,
+      type: 3}
+    m_TargetAsset: {fileID: 4134906911854451133, guid: ee824e45bb7c6af4f954dd5d32bd17f8,
+      type: 3}
+  - m_GUID: f882b1fb4a918b0418231dcfe3c64c00
+    m_Address: CyanPiece
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - MatchPieceCyan
+    m_MainAsset: {fileID: 370136596923316620, guid: f882b1fb4a918b0418231dcfe3c64c00,
+      type: 3}
+    m_TargetAsset: {fileID: 370136596923316620, guid: f882b1fb4a918b0418231dcfe3c64c00,
+      type: 3}
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 4740fe3a25b49ee4a976314e4d72d249, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 5cf8345e3ac136644aabda139cc207f8, type: 2}
+    - {fileID: 11400000, guid: a2e9a75a22eb9b74bb3a5d5d454e0550, type: 2}
