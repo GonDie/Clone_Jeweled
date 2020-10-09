@@ -19,7 +19,7 @@ public class MatchPiece : MonoBehaviour
     Transform _transform;
     public Transform Transform 
     { 
-        get 
+        get
         {
             if (_transform == null) _transform = GetComponent<Transform>();
             return _transform; 
@@ -29,17 +29,19 @@ public class MatchPiece : MonoBehaviour
     bool _isAnimating = false;
     public bool IsReady { get => !_isAnimating; }
 
-    public void MoveToTilePosition(Vector3 toPosition, SimpleEvent OnEndCallback = null)
+    public void MoveToTilePosition(Vector3 toPosition)
     {
-        StartCoroutine(Move(toPosition, _moveToTileEasing, _moveToTileDuration, _moveToTileDelay, false, OnEndCallback));
+        StartCoroutine(Move(toPosition, _moveToTileEasing, _moveToTileDuration, _moveToTileDelay, false));
     }
 
-    public void DropToTilePosition(Vector3 toPosition, int multiplier, SimpleEvent OnEndCallback = null)
+    public void DropToTilePosition(Vector3 toPosition)
     {
-        StartCoroutine(Move(toPosition, _dropToTileEasing, _dropToTileBaseDuration * ((int)BoardManager.Instance.BoardSize.y - multiplier), _dropToTileBaseDelay * multiplier, true, OnEndCallback));
+        float distance = Vector3.Distance(_transform.position, toPosition);
+
+        StartCoroutine(Move(toPosition, _dropToTileEasing, _dropToTileBaseDuration * distance, _dropToTileBaseDelay * (BoardManager.Instance.BoardSize.y - distance + 1f), true));
     }
 
-    IEnumerator Move(Vector3 toPosition, AnimationCurve easingCurve, float duration, float delay, bool overshoot = false, SimpleEvent OnEndCallback = null)
+    IEnumerator Move(Vector3 toPosition, AnimationCurve easingCurve, float duration, float delay, bool overshoot = false)
     {
         _isAnimating = true;
 
@@ -74,6 +76,5 @@ public class MatchPiece : MonoBehaviour
         _transform.position = toPosition;
 
         _isAnimating = false;
-        OnEndCallback?.Invoke();
     }
 }
