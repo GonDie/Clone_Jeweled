@@ -25,9 +25,15 @@ public class MatchPiece : MonoBehaviour
             return _transform; 
         } 
     }
+    Animation _animation;
 
     bool _isAnimating = false;
     public bool IsReady { get => !_isAnimating; }
+
+    private void Awake()
+    {
+        _animation = GetComponent<Animation>();
+    }
 
     public void MoveToTilePosition(Vector3 toPosition)
     {
@@ -41,7 +47,17 @@ public class MatchPiece : MonoBehaviour
         StartCoroutine(Move(toPosition, _dropToTileEasing, _dropToTileBaseDuration * distance, _dropToTileBaseDelay * (BoardManager.Instance.BoardSize.y - distance + 1f), true));
     }
 
-    IEnumerator Move(Vector3 toPosition, AnimationCurve easingCurve, float duration, float delay, bool overshoot = false)
+    public void MoveToWrongPosition(Vector3 toPosition)
+    {
+        Vector3 backToPosition = _transform.position;
+
+        StartCoroutine(Move(Vector3.Lerp(toPosition, backToPosition, 0.5f), _moveToTileEasing, _moveToTileDuration / 2f, _moveToTileDelay, false, () =>
+        {
+            StartCoroutine(Move(backToPosition, _moveToTileEasing, _moveToTileDuration / 2f, 0f));
+        }));
+    }
+
+    IEnumerator Move(Vector3 toPosition, AnimationCurve easingCurve, float duration, float delay, bool overshoot = false, SimpleEvent callback = null)
     {
         _isAnimating = true;
 
@@ -76,5 +92,30 @@ public class MatchPiece : MonoBehaviour
         _transform.position = toPosition;
 
         _isAnimating = false;
+        callback?.Invoke();
+    }
+
+    public void ToggleSelectedPiece(bool toggle)
+    {
+        if (toggle)
+            _animation.Play("Piece_Selected");
+        else
+        {
+            _animation.Stop();
+            _transform.localScale = Vector3.one;
+            _transform.localRotation = Quaternion.identity;
+        }
+    }
+
+    public void KillPiece(Vector3 position)
+    {
+        ObjectPooler.Instance.GetObject($"{pieceType}Particle", (Transform trans) =>
+        {
+            trans.position = position;
+            trans.SetParent(BoardManager.Instance.particlesContainer);
+            trans.gameObject.SetActive(true);
+        });
+
+        gameObject.SetActive(false);
     }
 }

@@ -1,7 +1,13 @@
-﻿
+﻿using UnityEngine;
+
 public static class Events
 {
-    public static event SimpleEvent OnGameStart;
+    public static SimpleEvent OnGameStart;
+    public static SimpleEvent OnGameEnd;
+
+    public static FloatEvent OnScoreUpdate;
+    public static FloatEvent OnTimeUpdate;
+    public static FloatVector3Event OnPieceKill;
 }
 
 public delegate void SimpleEvent();
@@ -9,3 +15,5 @@ public delegate void IntEvent(int i);
 public delegate void FloatEvent(float f);
 public delegate void BoolEvent(bool b);
 public delegate void GenericEvent<T>(T t);
+
+public delegate void FloatVector3Event(float f, Vector3 v3);

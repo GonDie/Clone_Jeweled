@@ -14,7 +14,7 @@ public class ObjectPooler : Singleton<ObjectPooler>
         _objectsPool = new Dictionary<string, List<GameObject>>();
     }
 
-    public void GetObject<T>(string assetLabel, GenericEvent<T> callback) where T : MonoBehaviour
+    public void GetObject<T>(string assetLabel, GenericEvent<T> callback)
     {
         if (!_objectsPool.ContainsKey(assetLabel))
             _objectsPool.Add(assetLabel, new List<GameObject>());

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 public class BoardManager : Singleton<BoardManager>
 {
@@ -11,7 +12,7 @@ public class BoardManager : Singleton<BoardManager>
 
     public Transform piecesContainer;
     public Transform boardContainer;
-    public GameObject boardPiecePrefab;
+    public Transform particlesContainer;
     public Transform[] spawnersTransform;
 
     [Header("Board Config")]
@@ -27,6 +28,7 @@ public class BoardManager : Singleton<BoardManager>
     MouseState _mouseState;
     BoardTile _selectedTile;
 
+    bool _isPlaying;
     float _mouseHoldTimer = 0f;
 
     #region Tests Properties & Vars
@@ -40,7 +42,8 @@ public class BoardManager : Singleton<BoardManager>
     {
         base.Awake();
 
-        Events.OnGameStart += PrepareBoard;
+        Events.OnGameStart += OnGameStart;
+        Events.OnGameEnd += OnGameEnd;
 
         if(displayNeighbor)
             _displayNeighbors = new Transform[4] { Instantiate(displayNeighborPrefab).GetComponent<Transform>(), Instantiate(displayNeighborPrefab).GetComponent<Transform>(), Instantiate(displayNeighborPrefab).GetComponent<Transform>(), Instantiate(displayNeighborPrefab).GetComponent<Transform>() };
@@ -50,18 +53,21 @@ public class BoardManager : Singleton<BoardManager>
     {
         _camera = Camera.main;
 
-        PrepareBoard();
+        StartCoroutine(PrepareBoard());
     }
 
     protected override void OnDestroy()
     {
         base.Awake();
 
-        Events.OnGameStart -= PrepareBoard;
+        Events.OnGameStart -= OnGameStart;
+        Events.OnGameEnd -= OnGameEnd;
     }
 
     private void Update()
     {
+        if (!_isPlaying) return;
+
         Ray ray = _camera.ScreenPointToRay(Input.mousePosition);
         RaycastHit2D hitInfo = Physics2D.Raycast(ray.origin, ray.direction, Mathf.Infinity);
         List<BoardTile> matchesFrom = new List<BoardTile>();
@@ -78,6 +84,7 @@ public class BoardManager : Singleton<BoardManager>
                     _mouseHoldTimer = 0f;
                     _mouseState = MouseState.DragSelectedPiece;
                     _selectedTile = hitInfo.collider.GetComponent<BoardTile>();
+                    _selectedTile.MatchPiece.ToggleSelectedPiece(true);
                 }
 
             break;
@@ -95,8 +102,7 @@ public class BoardManager : Singleton<BoardManager>
 
                     if (((Vector2)_selectedTile.Transform.position - hitInfo.point).magnitude < DRAG_DISTANCE_THRESHOLD)
                     {
-                        _selectedTile = null;
-                        _mouseState = MouseState.Hovering;
+                        DeselectTile();
                         return;
                     }
 
@@ -104,7 +110,7 @@ public class BoardManager : Singleton<BoardManager>
                     float horizontalDist = Mathf.Abs(_selectedTile.Transform.position.x - hitInfo.point.x);
 
                     Direction dir;
-                    if (verticalDist > horizontalDist) //TODO: Match Pieces
+                    if (verticalDist > horizontalDist)
                         dir = _selectedTile.Transform.position.y > hitInfo.point.y ? Direction.Down : Direction.Up;
                     else
                         dir = _selectedTile.Transform.position.x > hitInfo.point.x ? Direction.Left : Direction.Right;
@@ -113,19 +119,19 @@ public class BoardManager : Singleton<BoardManager>
                     matchesTo = CheckPossibleMatches(_selectedTile.GetNeighbor(dir), _selectedTile, _selectedTile.MatchPiece.pieceType);
                     if (matchesFrom.Count >= PIECE_MATCH_THRESHOLD || matchesTo.Count >= PIECE_MATCH_THRESHOLD)
                     {
+                        _selectedTile.MatchPiece.ToggleSelectedPiece(false);
                         matchesFrom.AddRange(matchesTo);
                         ExchangeTilePieces(_selectedTile, _selectedTile.GetNeighbor(dir), () =>
                         {
                             KillPieces(matchesFrom);
-
-                            _selectedTile = null;
-                            _mouseState = MouseState.Hovering;
                         });
+
+                        DeselectTile();
                     }
                     else
                     {
-                        _selectedTile = null;
-                        _mouseState = MouseState.Hovering;
+                        //MoveToWrongPosition(_selectedTile, _selectedTile.GetNeighbor(dir));
+                        DeselectTile();
                     }
                 }
 
@@ -155,40 +161,34 @@ public class BoardManager : Singleton<BoardManager>
 
                     if (_selectedTile == otherTile)
                     {
-                        //TODO: Unselect
-                        _mouseState = MouseState.Hovering;
-                        Debug.Log("Deselect Piece");
+                        DeselectTile();
                     }
                     else
                     {
                         Direction dir;
                         if (_selectedTile.IsNeighbor(otherTile, out dir))
                         {
-                            //TODO: Match Pieces
                             matchesFrom = CheckPossibleMatches(_selectedTile, otherTile, otherTile.MatchPiece.pieceType);
                             matchesTo = CheckPossibleMatches(otherTile, _selectedTile, _selectedTile.MatchPiece.pieceType);
                             if (matchesFrom.Count >= PIECE_MATCH_THRESHOLD || matchesTo.Count >= PIECE_MATCH_THRESHOLD)
                             {
+                                _selectedTile.MatchPiece.ToggleSelectedPiece(false);
                                 matchesFrom.AddRange(matchesTo);
                                 ExchangeTilePieces(_selectedTile, otherTile, () =>
                                 {
                                     KillPieces(matchesFrom);
-
-                                    _selectedTile = null;
-                                    _mouseState = MouseState.Hovering;
                                 });
+
+                                DeselectTile();
                             }
                             else
                             {
-                                //TODO: Cant do this
+                                MoveToWrongPosition(_selectedTile, otherTile);
+                                DeselectTile();
                             }
-
-                            _selectedTile = null;
-                            _mouseState = MouseState.Hovering;
                         }
                         else
                         {
-                            //TODO: Cant do this
                             _mouseState = MouseState.ClickSelectedPiece;
                         }
                     }
@@ -220,11 +220,32 @@ public class BoardManager : Singleton<BoardManager>
         #endregion
     }
 
-    void PrepareBoard()
+    void OnGameStart()
+    {
+        _isPlaying = true;
+
+        FillBoard();
+    }
+
+    void OnGameEnd()
+    {
+        _isPlaying = false;
+    }
+
+    void DeselectTile()
+    {
+        if(_selectedTile.MatchPiece != null)
+            _selectedTile.MatchPiece.ToggleSelectedPiece(false);
+        
+        _selectedTile = null;
+        _mouseState = MouseState.Hovering;
+    }
+
+    IEnumerator PrepareBoard()
     {
         _board = new BoardTile[(int)_boardSize.x, (int)_boardSize.y];
 
-        BoardTile piece = null;
+        BoardTile tile = null;
         Vector3 position = Vector3.zero;
 
         BoardTile up = null;
@@ -236,8 +257,14 @@ public class BoardManager : Singleton<BoardManager>
         {
             for (int col = 0; col < _boardSize.x; col++)
             {
-                piece = Instantiate(boardPiecePrefab, boardContainer).GetComponent<BoardTile>();
-                _board[row, col] = piece;
+                tile = null;
+                Addressables.InstantiateAsync("BoardTile", boardContainer).Completed += handler =>
+                {
+                    tile = handler.Result.GetComponent<BoardTile>();
+                };
+
+                yield return new WaitUntil(() => tile != null);
+                _board[row, col] = tile;
             }
         }
 
@@ -265,8 +292,6 @@ public class BoardManager : Singleton<BoardManager>
                 spawnersTransform[col].position = new Vector3(boardContainer.position.x + position.x, spawnersTransform[col].position.y, spawnersTransform[col].position.z);
             }
         }
-
-        FillBoard();
     }
 
     void FillBoard()
@@ -395,14 +420,26 @@ public class BoardManager : Singleton<BoardManager>
         StartCoroutine(WaitForBoardReady(callback));
     }
 
+    void MoveToWrongPosition(BoardTile tile1, BoardTile tile2, SimpleEvent callback = null)
+    {
+        tile1.MatchPiece.MoveToWrongPosition(tile2.Transform.position);
+        tile2.MatchPiece.MoveToWrongPosition(tile1.Transform.position);
+
+        StartCoroutine(WaitForBoardReady(callback));
+    }
+
     void KillPieces(List<BoardTile> tiles)
     {
+        Vector3 tilesCenter = Vector3.zero;
         for(int i = 0; i < tiles.Count; i++)
         {
-            //TODO: Particles
-            tiles[i].MatchPiece.gameObject.SetActive(false);
+            tiles[i].MatchPiece.KillPiece(tiles[i].Transform.position);
             tiles[i].SetCurrentMatchPiece(null, PieceMovementType.Drop);
+
+            tilesCenter += tiles[i].Transform.position;
         }
+
+        Events.OnPieceKill?.Invoke(tiles.Count, tilesCenter / tiles.Count);
 
         FillBoard();
     }
@@ -410,6 +447,7 @@ public class BoardManager : Singleton<BoardManager>
     void CheckBoardMatches()
     {
         List<BoardTile> tiles;
+        List<BoardTile> tempTiles;
         for(int row = 0; row < (int)_boardSize.x; row++)
         {
             for (int col = 0; col < (int)_boardSize.x; col++)
@@ -417,6 +455,16 @@ public class BoardManager : Singleton<BoardManager>
                 tiles = CheckPossibleMatches(_board[row, col], null, _board[row, col].MatchPiece.pieceType);
                 if(tiles.Count >= PIECE_MATCH_THRESHOLD)
                 {
+                    for(int i = 0; i < tiles.Count; i++)
+                    {
+                        if (tiles[i] == _board[row, col])
+                            continue;
+
+                        tempTiles = CheckPossibleMatches(tiles[i], null, tiles[i].MatchPiece.pieceType);
+                        if(tempTiles.Count >= PIECE_MATCH_THRESHOLD)
+                            tiles.AddRange(tempTiles.Where(x => !tiles.Contains(x)));
+                    }
+                    
                     KillPieces(tiles);
                     return;
                 }
