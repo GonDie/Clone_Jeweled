@@ -103,6 +103,7 @@ public class BoardManager : Singleton<BoardManager>
                     if (((Vector2)_selectedTile.Transform.position - hitInfo.point).magnitude < DRAG_DISTANCE_THRESHOLD)
                     {
                         DeselectTile();
+                        _mouseState = MouseState.Hovering;
                         return;
                     }
 
@@ -130,12 +131,12 @@ public class BoardManager : Singleton<BoardManager>
                     }
                     else
                     {
-                        //MoveToWrongPosition(_selectedTile, _selectedTile.GetNeighbor(dir));
+                        MoveToWrongPosition(_selectedTile, _selectedTile.GetNeighbor(dir), () => _mouseState = MouseState.Hovering);
                         DeselectTile();
                     }
                 }
 
-                break;
+            break;
             case MouseState.ClickSelectedPiece:
 
                 if (Input.GetMouseButtonDown(0))
@@ -162,6 +163,7 @@ public class BoardManager : Singleton<BoardManager>
                     if (_selectedTile == otherTile)
                     {
                         DeselectTile();
+                        _mouseState = MouseState.Hovering;
                     }
                     else
                     {
@@ -183,7 +185,7 @@ public class BoardManager : Singleton<BoardManager>
                             }
                             else
                             {
-                                MoveToWrongPosition(_selectedTile, otherTile);
+                                MoveToWrongPosition(_selectedTile, otherTile, () => _mouseState = MouseState.Hovering);
                                 DeselectTile();
                             }
                         }
@@ -238,7 +240,6 @@ public class BoardManager : Singleton<BoardManager>
             _selectedTile.MatchPiece.ToggleSelectedPiece(false);
         
         _selectedTile = null;
-        _mouseState = MouseState.Hovering;
     }
 
     IEnumerator PrepareBoard()
@@ -446,6 +447,7 @@ public class BoardManager : Singleton<BoardManager>
 
     void CheckBoardMatches()
     {
+        List<BoardTile> matches = new List<BoardTile>();
         List<BoardTile> tiles;
         List<BoardTile> tempTiles;
         for(int row = 0; row < (int)_boardSize.x; row++)
@@ -455,23 +457,28 @@ public class BoardManager : Singleton<BoardManager>
                 tiles = CheckPossibleMatches(_board[row, col], null, _board[row, col].MatchPiece.pieceType);
                 if(tiles.Count >= PIECE_MATCH_THRESHOLD)
                 {
-                    for(int i = 0; i < tiles.Count; i++)
+                    matches.AddRange(tiles.Where(x => !matches.Contains(x)));
+
+                    /*for (int i = 0; i < tiles.Count; i++)
                     {
                         if (tiles[i] == _board[row, col])
                             continue;
 
                         tempTiles = CheckPossibleMatches(tiles[i], null, tiles[i].MatchPiece.pieceType);
                         if(tempTiles.Count >= PIECE_MATCH_THRESHOLD)
-                            tiles.AddRange(tempTiles.Where(x => !tiles.Contains(x)));
-                    }
+                            matches.AddRange(tempTiles.Where(x => !matches.Contains(x)));
+                    }*/
                     
-                    KillPieces(tiles);
-                    return;
+                    //KillPieces(tiles);
+                    //return;
                 }
             }
         }
 
-        _mouseState = MouseState.Hovering;
+        if(matches.Count >= PIECE_MATCH_THRESHOLD)
+            KillPieces(matches);
+        else
+            _mouseState = MouseState.Hovering;
     }
 
     IEnumerator WaitForBoardReady(SimpleEvent callback)
