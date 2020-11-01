@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class StartScreen : MonoBehaviour
@@ -36,6 +35,6 @@ public class StartScreen : MonoBehaviour
             yield return null;
         }
 
-        Events.OnGameStart?.Invoke();
+        GameManager.Instance.StartGame();
     }
 }

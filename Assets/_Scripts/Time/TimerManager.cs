@@ -10,16 +10,23 @@ public class TimerManager : MonoBehaviour
 
     private void Awake()
     {
+        Events.OnGamePrepare += OnGamePrepare;
         Events.OnGameStart += OnGameStart;
         Events.OnGameEnd += OnGameEnd;
-        Events.OnTimeout += OnGameEnd;
+        Events.OnGameTimeout += OnGameEnd;
     }
 
     private void OnDestroy()
     {
+        Events.OnGamePrepare -= OnGamePrepare;
         Events.OnGameStart -= OnGameStart;
         Events.OnGameEnd -= OnGameEnd;
-        Events.OnTimeout -= OnGameEnd;
+        Events.OnGameTimeout -= OnGameEnd;
+    }
+
+    void OnGamePrepare(int i)
+    {
+        _elapsedTime = 0f;
     }
 
     void OnGameStart()
@@ -42,6 +49,6 @@ public class TimerManager : MonoBehaviour
         if (_roundTime - _elapsedTime >= 0f)
             Events.OnTimeUpdate?.Invoke(_roundTime - _elapsedTime);
         else
-            Events.OnTimeout?.Invoke();
+            GameManager.Instance.GameTimeout();
     }
 }

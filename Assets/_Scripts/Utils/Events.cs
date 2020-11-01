@@ -2,13 +2,18 @@
 
 public static class Events
 {
+    public static IntEvent OnGamePrepare;
     public static SimpleEvent OnGameStart;
     public static SimpleEvent OnGameEnd;
-    public static SimpleEvent OnTimeout;
+    public static SimpleEvent OnGameTimeout;
+    public static SimpleEvent OnGameWon;
 
-    public static FloatEvent OnScoreUpdate;
     public static FloatEvent OnTimeUpdate;
     public static FloatVector3Event OnPieceKill;
+
+    public static FloatEvent OnScoreUpdate;
+    public static FloatEvent OnTargetScoreUpdate;
+    public static FloatEvent OnScoreUpdateToNextLevelPercent;
 }
 
 public delegate void SimpleEvent();

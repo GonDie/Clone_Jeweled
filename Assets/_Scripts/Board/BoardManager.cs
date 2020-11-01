@@ -44,6 +44,7 @@ public class BoardManager : Singleton<BoardManager>
 
         Events.OnGameStart += OnGameStart;
         Events.OnGameEnd += OnGameEnd;
+        Events.OnGameTimeout += OnGameEnd;
 
         if(displayNeighbor)
             _displayNeighbors = new Transform[4] { Instantiate(displayNeighborPrefab).GetComponent<Transform>(), Instantiate(displayNeighborPrefab).GetComponent<Transform>(), Instantiate(displayNeighborPrefab).GetComponent<Transform>(), Instantiate(displayNeighborPrefab).GetComponent<Transform>() };
@@ -62,6 +63,7 @@ public class BoardManager : Singleton<BoardManager>
 
         Events.OnGameStart -= OnGameStart;
         Events.OnGameEnd -= OnGameEnd;
+        Events.OnGameTimeout -= OnGameEnd;
     }
 
     private void Update()
@@ -244,6 +246,34 @@ public class BoardManager : Singleton<BoardManager>
             _selectedTile.MatchPiece.ToggleSelectedPiece(false);
         
         _selectedTile = null;
+    }
+
+    private void OnDrawGizmos()
+    {
+        Camera cam = Camera.main;
+        float screenWidth = Screen.width;
+        float screenHeight = Screen.height;
+
+        float boardBoundariesW = screenWidth * 0.7f;
+        float boardBoundariesH = screenHeight * 0.8f;
+
+        float scaleH = boardBoundariesH / boardBoundariesW;
+        float scaleV = boardBoundariesW / boardBoundariesH;
+
+        float pieceScale = (scaleH < scaleV ? scaleH : scaleV) * 100f;
+        Vector3 position = Vector3.zero;
+        position.z = 10f;
+        for (int row = 0; row < _boardSize.y; row++)
+        {
+            for (int col = 0; col < _boardSize.x; col++)
+            {
+                position.x = screenWidth / 2f - ((((pieceScale + _spacing.x) * _boardSize.x) / 2f) - (pieceScale + _spacing.x) / 2f) + (pieceScale + _spacing.x) * col;
+                position.y = screenHeight / 2f - ((((pieceScale + _spacing.y) * _boardSize.y) / 2f) - (pieceScale + _spacing.y) / 2f) + (pieceScale + _spacing.y) * row;
+
+                Gizmos.color = Random.ColorHSV();
+                Gizmos.DrawCube(cam.ScreenToWorldPoint(position), Vector3.one * (pieceScale / 90f));
+            }
+        }
     }
 
     IEnumerator PrepareBoard()
@@ -452,8 +482,11 @@ public class BoardManager : Singleton<BoardManager>
             }
         }
 
-        if(matches.Count >= PIECE_MATCH_THRESHOLD)
+        if (matches.Count >= PIECE_MATCH_THRESHOLD)
+        {
+            SFXManager.Instance.PlaySFX(SFXType.MatchPiece);
             KillPieces(matches);
+        }
         else
             _mouseState = MouseState.Hovering;
     }
