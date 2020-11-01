@@ -1,9 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using UnityEngine;
 
 public class TimerManager : MonoBehaviour
 {
+    [SerializeField] float _roundTime = 120f;
+
     float _elapsedTime = 0f;
     bool _isPlaying;
 
@@ -11,12 +12,14 @@ public class TimerManager : MonoBehaviour
     {
         Events.OnGameStart += OnGameStart;
         Events.OnGameEnd += OnGameEnd;
+        Events.OnTimeout += OnGameEnd;
     }
 
     private void OnDestroy()
     {
         Events.OnGameStart -= OnGameStart;
         Events.OnGameEnd -= OnGameEnd;
+        Events.OnTimeout -= OnGameEnd;
     }
 
     void OnGameStart()
@@ -36,6 +39,9 @@ public class TimerManager : MonoBehaviour
 
         _elapsedTime += Time.deltaTime;
 
-        Events.OnTimeUpdate?.Invoke(_elapsedTime);
+        if (_roundTime - _elapsedTime >= 0f)
+            Events.OnTimeUpdate?.Invoke(_roundTime - _elapsedTime);
+        else
+            Events.OnTimeout?.Invoke();
     }
 }

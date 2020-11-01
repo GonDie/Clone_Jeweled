@@ -4,6 +4,7 @@ public static class Events
 {
     public static SimpleEvent OnGameStart;
     public static SimpleEvent OnGameEnd;
+    public static SimpleEvent OnTimeout;
 
     public static FloatEvent OnScoreUpdate;
     public static FloatEvent OnTimeUpdate;

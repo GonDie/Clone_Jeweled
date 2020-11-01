@@ -361,49 +361,20 @@ public class BoardManager : Singleton<BoardManager>
         List<BoardTile> tempMatches = new List<BoardTile>();
         List<BoardTile> tilesMatched = new List<BoardTile>();
 
-        int matches = 1;
+        tempMatches.AddRange(GetTileMatchesOnDirection(tile, Direction.Right, type, ignoreOther));
+        tempMatches.AddRange(GetTileMatchesOnDirection(tile, Direction.Left, type, ignoreOther));
 
-        BoardTile nextTile = tile.GetNeighbor(Direction.Right);
-        while (nextTile != ignoreOther && nextTile != null && nextTile.MatchPiece.pieceType == type)
-        {
-            matches++;
-            tempMatches.Add(nextTile);
-            nextTile = nextTile.GetNeighbor(Direction.Right);
-        }
-
-        nextTile = tile.GetNeighbor(Direction.Left);
-        while (nextTile != ignoreOther && nextTile != null && nextTile.MatchPiece.pieceType == type)
-        {
-            matches++;
-            tempMatches.Add(nextTile);
-            nextTile = nextTile.GetNeighbor(Direction.Left);
-        }
-
-        if (matches >= PIECE_MATCH_THRESHOLD)
+        if (tempMatches.Count >= PIECE_MATCH_THRESHOLD - 1)
         {
             tilesMatched.Add(tile);
             tilesMatched.AddRange(tempMatches);
         }
 
         tempMatches.Clear();
-        matches = 1;
-        nextTile = tile.GetNeighbor(Direction.Up);
-        while (nextTile != ignoreOther && nextTile != null && nextTile.MatchPiece.pieceType == type)
-        {
-            matches++;
-            tempMatches.Add(nextTile);
-            nextTile = nextTile.GetNeighbor(Direction.Up);
-        }
+        tempMatches.AddRange(GetTileMatchesOnDirection(tile, Direction.Up, type, ignoreOther));
+        tempMatches.AddRange(GetTileMatchesOnDirection(tile, Direction.Down, type, ignoreOther));
 
-        nextTile = tile.GetNeighbor(Direction.Down);
-        while (nextTile != ignoreOther && nextTile != null && nextTile.MatchPiece.pieceType == type)
-        {
-            matches++;
-            tempMatches.Add(nextTile);
-            nextTile = nextTile.GetNeighbor(Direction.Down);
-        }
-
-        if (matches >= PIECE_MATCH_THRESHOLD)
+        if (tempMatches.Count >= PIECE_MATCH_THRESHOLD - 1)
         {
             if(!tilesMatched.Contains(tile))
                 tilesMatched.Add(tile);
@@ -412,6 +383,20 @@ public class BoardManager : Singleton<BoardManager>
         }
 
         return tilesMatched;
+    }
+
+    List<BoardTile> GetTileMatchesOnDirection(BoardTile tile, Direction direction, PieceType type, BoardTile ignoreOther = null)
+    {
+        List<BoardTile> tempMatches = new List<BoardTile>();
+
+        BoardTile nextTile = tile.GetNeighbor(direction);
+        while (nextTile != ignoreOther && nextTile != null && nextTile.MatchPiece.pieceType == type)
+        {
+            tempMatches.Add(nextTile);
+            nextTile = nextTile.GetNeighbor(direction);
+        }
+
+        return tempMatches;
     }
 
     void ExchangeTilePieces(BoardTile fromTile, BoardTile toTile, SimpleEvent callback = null)
