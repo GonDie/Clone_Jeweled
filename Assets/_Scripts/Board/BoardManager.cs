@@ -85,6 +85,8 @@ public class BoardManager : Singleton<BoardManager>
                     _mouseState = MouseState.DragSelectedPiece;
                     _selectedTile = hitInfo.collider.GetComponent<BoardTile>();
                     _selectedTile.MatchPiece.ToggleSelectedPiece(true);
+
+                    SFXManager.Instance.PlaySFX(SFXType.SelectPiece);
                 }
 
             break;
@@ -124,6 +126,7 @@ public class BoardManager : Singleton<BoardManager>
                         matchesFrom.AddRange(matchesTo);
                         ExchangeTilePieces(_selectedTile, _selectedTile.GetNeighbor(dir), () =>
                         {
+                            SFXManager.Instance.PlaySFX(SFXType.MatchPiece);
                             KillPieces(matchesFrom);
                         });
 
@@ -168,7 +171,7 @@ public class BoardManager : Singleton<BoardManager>
                     else
                     {
                         Direction dir;
-                        if (_selectedTile.IsNeighbor(otherTile, out dir))
+                        if (_selectedTile != null && _selectedTile.IsNeighbor(otherTile, out dir))
                         {
                             matchesFrom = CheckPossibleMatches(_selectedTile, otherTile, otherTile.MatchPiece.pieceType);
                             matchesTo = CheckPossibleMatches(otherTile, _selectedTile, _selectedTile.MatchPiece.pieceType);
@@ -178,6 +181,7 @@ public class BoardManager : Singleton<BoardManager>
                                 matchesFrom.AddRange(matchesTo);
                                 ExchangeTilePieces(_selectedTile, otherTile, () =>
                                 {
+                                    SFXManager.Instance.PlaySFX(SFXType.MatchPiece);
                                     KillPieces(matchesFrom);
                                 });
 
@@ -412,6 +416,8 @@ public class BoardManager : Singleton<BoardManager>
 
     void ExchangeTilePieces(BoardTile fromTile, BoardTile toTile, SimpleEvent callback = null)
     {
+        SFXManager.Instance.PlaySFX(SFXType.SwapPiece);
+
         _mouseState = MouseState.Standby;
 
         MatchPiece piece = fromTile.MatchPiece;
@@ -449,7 +455,6 @@ public class BoardManager : Singleton<BoardManager>
     {
         List<BoardTile> matches = new List<BoardTile>();
         List<BoardTile> tiles;
-        List<BoardTile> tempTiles;
         for(int row = 0; row < (int)_boardSize.x; row++)
         {
             for (int col = 0; col < (int)_boardSize.x; col++)
@@ -458,19 +463,6 @@ public class BoardManager : Singleton<BoardManager>
                 if(tiles.Count >= PIECE_MATCH_THRESHOLD)
                 {
                     matches.AddRange(tiles.Where(x => !matches.Contains(x)));
-
-                    /*for (int i = 0; i < tiles.Count; i++)
-                    {
-                        if (tiles[i] == _board[row, col])
-                            continue;
-
-                        tempTiles = CheckPossibleMatches(tiles[i], null, tiles[i].MatchPiece.pieceType);
-                        if(tempTiles.Count >= PIECE_MATCH_THRESHOLD)
-                            matches.AddRange(tempTiles.Where(x => !matches.Contains(x)));
-                    }*/
-                    
-                    //KillPieces(tiles);
-                    //return;
                 }
             }
         }
