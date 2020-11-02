@@ -11,6 +11,7 @@ public class ScoreManager : MonoBehaviour
     [SerializeField] float _levelScoreMultiplier = 1.5f;
     [SerializeField] float _streakDuration = 3f;
 
+    float _baseLevelScore;
     float _targetScore;
     float _totalScore = 0f;
     float _currentScore = 0f;
@@ -21,6 +22,7 @@ public class ScoreManager : MonoBehaviour
     private void Awake()
     {
         Events.OnGamePrepare += OnGamePrepare;
+        Events.OnGameReset += OnGameReset;
         Events.OnPieceKill += OnPieceKill;
     }
 
@@ -32,10 +34,18 @@ public class ScoreManager : MonoBehaviour
 
     void OnGamePrepare(int level)
     {
+        _baseLevelScore = (_baseTargetScore * (level - 1 > 0 ? 1f : 0f)) + _baseTargetScore * (_levelScoreMultiplier * (level - 2 > 0 ? level - 2 : 0f));
         _targetScore = _baseTargetScore + (_baseTargetScore * (_levelScoreMultiplier * (level - 1)));
 
         Events.OnTargetScoreUpdate?.Invoke(_targetScore);
         Events.OnScoreUpdateToNextLevelPercent?.Invoke(0f);
+    }
+
+    void OnGameReset()
+    {
+        _totalScore = 0f;
+        _currentScore = 0f;
+        Events.OnScoreUpdate?.Invoke(_currentScore);
     }
 
     private void Update()
@@ -64,7 +74,7 @@ public class ScoreManager : MonoBehaviour
 
         CameraShake.Instance.DoShake(_currentStreak);
 
-        Events.OnScoreUpdateToNextLevelPercent?.Invoke(_totalScore / _targetScore);
+        Events.OnScoreUpdateToNextLevelPercent?.Invoke(Mathf.Abs(_baseLevelScore - _totalScore) / Mathf.Abs(_targetScore - _baseLevelScore));
         if (_totalScore >= _targetScore)
             GameManager.Instance.GameWon();
     }

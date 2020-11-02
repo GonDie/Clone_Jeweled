@@ -26,6 +26,7 @@ public class MatchPiece : MonoBehaviour
         } 
     }
     SpriteRenderer _spriteRenderer;
+    Transform _childTrans;
     Animation _animation;
 
     float _scale;
@@ -35,6 +36,7 @@ public class MatchPiece : MonoBehaviour
     private void Awake()
     {
         _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        _childTrans = _spriteRenderer.GetComponent<Transform>();
         _animation = GetComponent<Animation>();
     }
 
@@ -47,7 +49,11 @@ public class MatchPiece : MonoBehaviour
     {
         float distance = Vector3.Distance(_transform.position, toPosition);
 
-        StartCoroutine(Move(toPosition, _dropToTileEasing, _dropToTileBaseDuration * distance, _dropToTileBaseDelay * (BoardManager.Instance.BoardSize.y - distance + 1f), true));
+        float duration = _dropToTileBaseDuration * distance;
+        float delay = _dropToTileBaseDelay * (BoardManager.Instance.BoardSize.y - distance + 1f);
+
+        StartCoroutine(Move(toPosition, _dropToTileEasing, duration, delay, true));
+        StartCoroutine(PlayAudio(duration + delay - 0.1f));
     }
 
     public void MoveToWrongPosition(Vector3 toPosition)
@@ -98,20 +104,45 @@ public class MatchPiece : MonoBehaviour
         callback?.Invoke();
     }
 
+    IEnumerator PlayAudio(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        SFXManager.Instance.PlaySFX(SFXType.DropPiece, true, 0.1f);
+    }
+
     public void ToggleSelectedPiece(bool toggle)
     {
         if (toggle)
-        {
-            _spriteRenderer.sortingOrder = 10;
-            _animation.Play("Piece_Selected");
-        }
+            PlayAnimation("Piece_Selected");
         else
-        {
-            _spriteRenderer.sortingOrder = 0;
-            _animation.Stop();
-            _transform.localScale = BoardManager.Instance.PieceSize;
-            _transform.localRotation = Quaternion.identity;
-        }
+            StopAnimation();
+    }
+
+    public void ToggleTip(bool toggle)
+    {
+        if (toggle)
+            PlayAnimation("Piece_Tip");
+        else
+            StopAnimation();
+    }
+
+    void PlayAnimation(string anim)
+    {
+        StopAnimation();
+        _spriteRenderer.sortingOrder = 10;
+        _animation.Play(anim);
+    }
+
+    void StopAnimation()
+    {
+        _spriteRenderer.sortingOrder = 0;
+        _animation.Stop();
+        _transform.localScale = BoardManager.Instance.PieceSize;
+        _transform.localRotation = Quaternion.identity;
+
+        _childTrans.localScale = Vector3.one * 0.4f;
+        _childTrans.localRotation = Quaternion.identity;
     }
 
     public void KillPiece(Vector3 position)

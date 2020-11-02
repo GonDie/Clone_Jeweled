@@ -7,6 +7,7 @@ public static class Events
     public static SimpleEvent OnGameEnd;
     public static SimpleEvent OnGameTimeout;
     public static SimpleEvent OnGameWon;
+    public static SimpleEvent OnGameReset;
 
     public static FloatEvent OnTimeUpdate;
     public static FloatVector3Event OnPieceKill;

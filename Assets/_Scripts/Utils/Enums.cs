@@ -7,4 +7,4 @@ public enum PieceType { MatchPieceWhite, MatchPieceRed, MatchPieceYellow, MatchP
 
 public enum PieceMovementType { Move, Drop }
 
-public enum SFXType { SelectPiece, SwapPiece, MatchPiece }
+public enum SFXType { SelectPiece, SwapPiece, MatchPiece, DropPiece }

@@ -6,6 +6,7 @@ public class SFXManager : Singleton<SFXManager>
     [SerializeField] AudioClip _selectPieceSFX;
     [SerializeField] AudioClip _swapPieceSFX;
     [SerializeField] AudioClip _matchPieceSFX;
+    [SerializeField] AudioClip _pieceDropSFX;
 
     AudioSource _audioSrc;
 
@@ -21,10 +22,17 @@ public class SFXManager : Singleton<SFXManager>
         _audioDictionary.Add(SFXType.SelectPiece, _selectPieceSFX);
         _audioDictionary.Add(SFXType.SwapPiece, _swapPieceSFX);
         _audioDictionary.Add(SFXType.MatchPiece, _matchPieceSFX);
+        _audioDictionary.Add(SFXType.DropPiece, _pieceDropSFX);
     }
 
-    public void PlaySFX(SFXType type)
+    public void PlaySFX(SFXType type, bool prioritary = false, float volume = 1f)
     {
-        _audioSrc.PlayOneShot(_audioDictionary[type]);
+        if(!prioritary)
+            _audioSrc.PlayOneShot(_audioDictionary[type], volume);
+        else if(!_audioSrc.isPlaying)
+        {
+            _audioSrc.clip = _audioDictionary[type];
+            _audioSrc.Play();
+        }
     }
 }

@@ -923,6 +923,7 @@ MonoBehaviour:
   _selectPieceSFX: {fileID: 8300000, guid: 88782081ba359b34ba65a94acff52935, type: 3}
   _swapPieceSFX: {fileID: 8300000, guid: 570ef55fb74ec6d49bdd88a3068bd0ed, type: 3}
   _matchPieceSFX: {fileID: 8300000, guid: dd6665c776e68494a8663580c95d5031, type: 3}
+  _pieceDropSFX: {fileID: 8300000, guid: 3b14eed8ee154f8419191e130331ddf9, type: 3}
 --- !u!82 &689036819
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1067,9 +1068,7 @@ MonoBehaviour:
   particlesContainer: {fileID: 35180410}
   spawnersContainer: {fileID: 279323757}
   _boardSize: {x: 8, y: 8}
-  displayNeighbor: 0
-  displayNeighborPrefab: {fileID: 8852281244510207438, guid: e69359549c489504e9109eced6de27d0,
-    type: 3}
+  tipDelay: 5
 --- !u!1 &868207217
 GameObject:
   m_ObjectHideFlags: 0

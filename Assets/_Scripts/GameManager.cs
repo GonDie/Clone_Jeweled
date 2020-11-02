@@ -34,6 +34,7 @@ public class GameManager : Singleton<GameManager>
         Debug.Log("Reset Game");
 
         _currentLevel = 0;
+        Events.OnGameReset?.Invoke();
         PrepareGame();
     }
 
