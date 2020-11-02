@@ -33,13 +33,6 @@ public class BoardManager : Singleton<BoardManager>
     bool _isPlaying;
     float _mouseHoldTimer = 0f;
 
-    #region Tests Properties & Vars
-    [Header("Tests")]
-    public bool displayNeighbor;
-    public GameObject displayNeighborPrefab;
-    Transform[] _displayNeighbors;
-    #endregion
-
     protected override void Awake()
     {
         base.Awake();
@@ -47,9 +40,6 @@ public class BoardManager : Singleton<BoardManager>
         Events.OnGameStart += OnGameStart;
         Events.OnGameWon += OnGameEnd;
         Events.OnGameTimeout += OnGameEnd;
-
-        if(displayNeighbor)
-            _displayNeighbors = new Transform[4] { Instantiate(displayNeighborPrefab).GetComponent<Transform>(), Instantiate(displayNeighborPrefab).GetComponent<Transform>(), Instantiate(displayNeighborPrefab).GetComponent<Transform>(), Instantiate(displayNeighborPrefab).GetComponent<Transform>() };
     }
 
     private void Start()
@@ -208,26 +198,6 @@ public class BoardManager : Singleton<BoardManager>
             case MouseState.Standby:
             break;
         }
-
-        #region Tests
-
-        if (displayNeighbor && _displayNeighbors != null)
-        {
-            BoardTile testNeighborTile = hitInfo.collider.GetComponent<BoardTile>();
-
-            for (int i = 0; i < (int)Direction.Count; i++)
-            {
-                _displayNeighbors[i].gameObject.SetActive(false);
-
-                if (testNeighborTile.GetNeighbor((Direction)i) != null)
-                {
-                    _displayNeighbors[i].gameObject.SetActive(true);
-                    _displayNeighbors[i].position = testNeighborTile.GetNeighbor((Direction)i).Transform.position;
-                    _displayNeighbors[i].GetComponent<TMPro.TMP_Text>().text = ((Direction)i).ToString();
-                }
-            }
-        }
-        #endregion
     }
 
     void OnGameStart()

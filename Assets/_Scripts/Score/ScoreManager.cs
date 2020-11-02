@@ -35,6 +35,7 @@ public class ScoreManager : MonoBehaviour
         _targetScore = _baseTargetScore + (_baseTargetScore * (_levelScoreMultiplier * (level - 1)));
 
         Events.OnTargetScoreUpdate?.Invoke(_targetScore);
+        Events.OnScoreUpdateToNextLevelPercent?.Invoke(0f);
     }
 
     private void Update()
