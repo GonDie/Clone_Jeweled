@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4032304584422128210}
   - component: {fileID: 5463143793399750601}
   m_Layer: 8
-  m_Name: BoardPiece
+  m_Name: BoardTile
   m_TagString: Untagged
   m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0

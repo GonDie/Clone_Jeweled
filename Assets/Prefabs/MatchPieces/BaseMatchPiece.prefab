@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3138000793276633699}
-  - component: {fileID: 2937335286685566754}
+  - component: {fileID: 8002358994385699496}
   - component: {fileID: 3138000793276633700}
   m_Layer: 0
   m_Name: BaseMatchPiece
@@ -33,7 +33,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!111 &2937335286685566754
+--- !u!111 &8002358994385699496
 Animation:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -89,7 +89,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   _dropToTileBaseDuration: 0.1
-  _dropToTileBaseDelay: 0.15
+  _dropToTileBaseDelay: 0.1
   _dropBounceBackDuration: 1
   _dropToTileEasing:
     serializedVersion: 2

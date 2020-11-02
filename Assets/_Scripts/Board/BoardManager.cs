@@ -9,17 +9,19 @@ public class BoardManager : Singleton<BoardManager>
     const int PIECE_MATCH_THRESHOLD = 3;
     const float DRAG_DISTANCE_THRESHOLD = 0.25f;
     const float MOUSE_CLICK_THRESHOLD = 0.15f;
+    const float PIECE_SCALE_MULTIPLIER = 100f;
 
     public Transform piecesContainer;
     public Transform boardContainer;
     public Transform particlesContainer;
-    public Transform[] spawnersTransform;
+    public Transform spawnersContainer;
+    Transform[] _spawnersTransform;
 
     [Header("Board Config")]
     [SerializeField] Vector2 _boardSize = new Vector2(8, 8);
     public Vector2 BoardSize { get => _boardSize; }
-    [SerializeField] Vector2 _pieceSize = Vector2.one;
-    Vector2 _spacing = Vector2.zero;
+    Vector2 _pieceSize = Vector2.one;
+    public Vector2 PieceSize { get => _pieceSize; }
 
     BoardTile[,] _board;
 
@@ -248,40 +250,25 @@ public class BoardManager : Singleton<BoardManager>
         _selectedTile = null;
     }
 
-    private void OnDrawGizmos()
+    IEnumerator PrepareBoard()
     {
         Camera cam = Camera.main;
         float screenWidth = Screen.width;
         float screenHeight = Screen.height;
 
-        float boardBoundariesW = screenWidth * 0.7f;
+        float boardBoundariesW = screenWidth * 0.9f;
         float boardBoundariesH = screenHeight * 0.8f;
 
         float scaleH = boardBoundariesH / boardBoundariesW;
         float scaleV = boardBoundariesW / boardBoundariesH;
 
-        float pieceScale = (scaleH < scaleV ? scaleH : scaleV) * 100f;
+        float pieceScale = (scaleH < scaleV ? boardBoundariesH / _boardSize.y : boardBoundariesW / _boardSize.x);
         Vector3 position = Vector3.zero;
-        position.z = 10f;
-        for (int row = 0; row < _boardSize.y; row++)
-        {
-            for (int col = 0; col < _boardSize.x; col++)
-            {
-                position.x = screenWidth / 2f - ((((pieceScale + _spacing.x) * _boardSize.x) / 2f) - (pieceScale + _spacing.x) / 2f) + (pieceScale + _spacing.x) * col;
-                position.y = screenHeight / 2f - ((((pieceScale + _spacing.y) * _boardSize.y) / 2f) - (pieceScale + _spacing.y) / 2f) + (pieceScale + _spacing.y) * row;
 
-                Gizmos.color = Random.ColorHSV();
-                Gizmos.DrawCube(cam.ScreenToWorldPoint(position), Vector3.one * (pieceScale / 90f));
-            }
-        }
-    }
-
-    IEnumerator PrepareBoard()
-    {
+        _pieceSize = Vector2.one * pieceScale;
         _board = new BoardTile[(int)_boardSize.x, (int)_boardSize.y];
 
         BoardTile tile = null;
-        Vector3 position = Vector3.zero;
 
         BoardTile up = null;
         BoardTile right = null;
@@ -307,8 +294,9 @@ public class BoardManager : Singleton<BoardManager>
         {
             for (int col = 0; col < _boardSize.x; col++)
             {
-                position.x = -((((_pieceSize.x + _spacing.x) * _boardSize.x) / 2f) - (_pieceSize.x + _spacing.x) / 2f) + (_pieceSize.x + _spacing.x) * col;
-                position.y = -((((_pieceSize.y + _spacing.y) * _boardSize.y) / 2f) - (_pieceSize.y + _spacing.y) / 2f) + (_pieceSize.y + _spacing.y) * row;
+                position.x = (screenWidth / 2f) - (((_pieceSize.x * _boardSize.x) / 2f) - _pieceSize.x / 2f) + _pieceSize.x * col;
+                position.y = (screenHeight / 2f) - (((_pieceSize.y * _boardSize.y) / 2f) - _pieceSize.y / 2f) + _pieceSize.y * row;
+                position.z = 0f;
 
                 if (col == 0) left = null;
                 else left = _board[row, col - 1];
@@ -322,10 +310,33 @@ public class BoardManager : Singleton<BoardManager>
                 if (row < _boardSize.y - 1) up = _board[row + 1, col];
                 else up = null;
 
-                _board[row, col].Init(position, new Vector2(row, col), up, right, down, left);
-
-                spawnersTransform[col].position = new Vector3(boardContainer.position.x + position.x, spawnersTransform[col].position.y, spawnersTransform[col].position.z);
+                _board[row, col].Init(boardContainer.position + cam.ScreenToWorldPoint(position), new Vector2(row, col), up, right, down, left);
             }
+
+            for (int col = 0; col < _boardSize.x; col++)
+            {
+                _board[row, col].SetSize(Vector2.one * Mathf.Abs(_board[0, 0].Transform.localPosition.x - _board[0, 1].Transform.localPosition.x));
+            }
+        }
+
+        _pieceSize = Vector2.one * Mathf.Abs(_board[0, 0].Transform.localPosition.x - _board[0, 1].Transform.localPosition.x);
+
+        Transform spawnTrans;
+        Vector3 spawnPosition = cam.ScreenToWorldPoint(Vector3.up * (screenHeight + 100f));
+        _spawnersTransform = new Transform[(int)_boardSize.x];
+
+        for (int col = 0; col < _boardSize.x; col++)
+        {
+            spawnTrans = null;
+            Addressables.InstantiateAsync("Spawner", spawnersContainer).Completed += handler =>
+            {
+                spawnTrans = handler.Result.GetComponent<Transform>();
+            };
+
+            yield return new WaitUntil(() => spawnTrans != null);
+
+            spawnTrans.position = boardContainer.position + new Vector3(_board[0, col].Transform.localPosition.x, spawnPosition.y, 0f);
+            _spawnersTransform[col] = spawnTrans;
         }
     }
 
@@ -375,7 +386,8 @@ public class BoardManager : Singleton<BoardManager>
                 {
                     piece = pooledPiece;
                     piece.Transform.SetParent(piecesContainer);
-                    piece.Transform.position = spawnersTransform[columnIndex].position;
+                    piece.Transform.position = _spawnersTransform[columnIndex].position;
+                    piece.Transform.localScale = _pieceSize;
                     _board[row, columnIndex].SetCurrentMatchPiece(piece, PieceMovementType.Drop);
                 });
 

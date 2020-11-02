@@ -30,6 +30,11 @@ public class BoardTile : MonoBehaviour
         _neighbors.Add(Direction.Left, neighborLeft);
     }
 
+    public void SetSize(Vector2 size)
+    {
+        _transform.localScale = size;
+    }
+
     public BoardTile GetNeighbor(Direction direction)
     {
         return _neighbors[direction];

@@ -25,13 +25,16 @@ public class MatchPiece : MonoBehaviour
             return _transform; 
         } 
     }
+    SpriteRenderer _spriteRenderer;
     Animation _animation;
 
+    float _scale;
     bool _isAnimating = false;
     public bool IsReady { get => !_isAnimating; }
 
     private void Awake()
     {
+        _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         _animation = GetComponent<Animation>();
     }
 
@@ -98,11 +101,15 @@ public class MatchPiece : MonoBehaviour
     public void ToggleSelectedPiece(bool toggle)
     {
         if (toggle)
+        {
+            _spriteRenderer.sortingOrder = 10;
             _animation.Play("Piece_Selected");
+        }
         else
         {
+            _spriteRenderer.sortingOrder = 0;
             _animation.Stop();
-            _transform.localScale = Vector3.one;
+            _transform.localScale = BoardManager.Instance.PieceSize;
             _transform.localRotation = Quaternion.identity;
         }
     }
