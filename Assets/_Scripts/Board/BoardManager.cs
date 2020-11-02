@@ -45,7 +45,7 @@ public class BoardManager : Singleton<BoardManager>
         base.Awake();
 
         Events.OnGameStart += OnGameStart;
-        Events.OnGameEnd += OnGameEnd;
+        Events.OnGameWon += OnGameEnd;
         Events.OnGameTimeout += OnGameEnd;
 
         if(displayNeighbor)
@@ -64,7 +64,7 @@ public class BoardManager : Singleton<BoardManager>
         base.Awake();
 
         Events.OnGameStart -= OnGameStart;
-        Events.OnGameEnd -= OnGameEnd;
+        Events.OnGameWon -= OnGameEnd;
         Events.OnGameTimeout -= OnGameEnd;
     }
 
@@ -131,7 +131,7 @@ public class BoardManager : Singleton<BoardManager>
                         ExchangeTilePieces(_selectedTile, _selectedTile.GetNeighbor(dir), () =>
                         {
                             SFXManager.Instance.PlaySFX(SFXType.MatchPiece);
-                            KillPieces(matchesFrom);
+                            KillPieces(matchesFrom, TriggerScore);
                         });
 
                         DeselectTile();
@@ -186,7 +186,7 @@ public class BoardManager : Singleton<BoardManager>
                                 ExchangeTilePieces(_selectedTile, otherTile, () =>
                                 {
                                     SFXManager.Instance.PlaySFX(SFXType.MatchPiece);
-                                    KillPieces(matchesFrom);
+                                    KillPieces(matchesFrom, TriggerScore);
                                 });
 
                                 DeselectTile();
@@ -240,6 +240,8 @@ public class BoardManager : Singleton<BoardManager>
     void OnGameEnd()
     {
         _isPlaying = false;
+
+        ClearBoard();
     }
 
     void DeselectTile()
@@ -462,7 +464,7 @@ public class BoardManager : Singleton<BoardManager>
         StartCoroutine(WaitForBoardReady(callback));
     }
 
-    void KillPieces(List<BoardTile> tiles)
+    void KillPieces(List<BoardTile> tiles, FloatVector3Event callback = null)
     {
         Vector3 tilesCenter = Vector3.zero;
         for(int i = 0; i < tiles.Count; i++)
@@ -473,8 +475,12 @@ public class BoardManager : Singleton<BoardManager>
             tilesCenter += tiles[i].Transform.position;
         }
 
-        Events.OnPieceKill?.Invoke(tiles.Count, tilesCenter / tiles.Count);
+        callback?.Invoke(tiles.Count, tilesCenter / tiles.Count);
+    }
 
+    void TriggerScore(float pieceAmount, Vector3 piecesCenter)
+    {
+        Events.OnPieceKill?.Invoke(pieceAmount, piecesCenter);
         FillBoard();
     }
 
@@ -497,10 +503,19 @@ public class BoardManager : Singleton<BoardManager>
         if (matches.Count >= PIECE_MATCH_THRESHOLD)
         {
             SFXManager.Instance.PlaySFX(SFXType.MatchPiece);
-            KillPieces(matches);
+            KillPieces(matches, TriggerScore);
         }
         else
             _mouseState = MouseState.Hovering;
+    }
+
+    void ClearBoard()
+    {
+        StartCoroutine(WaitForBoardReady(() =>
+        {
+            KillPieces(_board.Cast<BoardTile>().ToList());
+            StopAllCoroutines();
+        }));
     }
 
     IEnumerator WaitForBoardReady(SimpleEvent callback)

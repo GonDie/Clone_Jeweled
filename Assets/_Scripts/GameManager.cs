@@ -46,6 +46,6 @@ public class GameManager : Singleton<GameManager>
     public void GameWon()
     {
         Debug.Log("Game Won");
-        Events.OnGameEnd?.Invoke();
+        Events.OnGameWon?.Invoke();
     }
 }

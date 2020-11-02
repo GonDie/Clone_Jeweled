@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 373296678989684899}
   - component: {fileID: 2095391784383674050}
   m_Layer: 0
-  m_Name: BluePieceParticle
+  m_Name: BasePieceParticle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -115,7 +115,7 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 5
+      scalar: 3
       minScalar: 5
       maxCurve:
         serializedVersion: 2

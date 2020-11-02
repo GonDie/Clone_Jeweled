@@ -12,7 +12,7 @@ public class TimerManager : MonoBehaviour
     {
         Events.OnGamePrepare += OnGamePrepare;
         Events.OnGameStart += OnGameStart;
-        Events.OnGameEnd += OnGameEnd;
+        Events.OnGameWon += OnGameEnd;
         Events.OnGameTimeout += OnGameEnd;
     }
 
@@ -20,7 +20,7 @@ public class TimerManager : MonoBehaviour
     {
         Events.OnGamePrepare -= OnGamePrepare;
         Events.OnGameStart -= OnGameStart;
-        Events.OnGameEnd -= OnGameEnd;
+        Events.OnGameWon -= OnGameEnd;
         Events.OnGameTimeout -= OnGameEnd;
     }
 
