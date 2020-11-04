@@ -50,7 +50,7 @@ public class MatchPiece : MonoBehaviour
         float distance = Vector3.Distance(_transform.position, toPosition);
 
         float duration = _dropToTileBaseDuration * distance;
-        float delay = _dropToTileBaseDelay * (BoardManager.Instance.BoardSize.y - distance + 1f);
+        float delay = _dropToTileBaseDelay * (GameManager.Instance.BoardSize.y - distance + 1f);
 
         StartCoroutine(Move(toPosition, _dropToTileEasing, duration, delay, true));
         StartCoroutine(PlayAudio(duration + delay - 0.1f));
@@ -138,7 +138,7 @@ public class MatchPiece : MonoBehaviour
     {
         _spriteRenderer.sortingOrder = 0;
         _animation.Stop();
-        _transform.localScale = BoardManager.Instance.PieceSize;
+        _transform.localScale = GameManager.Instance.PieceSize;
         _transform.localRotation = Quaternion.identity;
 
         _childTrans.localScale = Vector3.one * 0.4f;
@@ -150,7 +150,7 @@ public class MatchPiece : MonoBehaviour
         ObjectPooler.Instance.GetObject($"{pieceType}Particle", (Transform trans) =>
         {
             trans.position = position;
-            trans.SetParent(BoardManager.Instance.particlesContainer);
+            trans.SetParent(GameManager.Instance.ParticlesContainer);
             trans.gameObject.SetActive(true);
         });
 
