@@ -84,7 +84,7 @@ public class BoardInput : MonoBehaviour
 
                 _mouseHoldTimer += Time.deltaTime;
 
-                if (Input.GetMouseButtonUp(0))
+                if (Input.GetMouseButtonUp(0) && _selectedTile != null)
                 {
                     if (_mouseHoldTimer <= MOUSE_CLICK_THRESHOLD)
                     {
