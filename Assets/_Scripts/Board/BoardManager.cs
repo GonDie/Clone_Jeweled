@@ -385,8 +385,25 @@ public class BoardManager : MonoBehaviour
 
     IEnumerator WaitForBoardReady(SimpleEvent callback)
     {
+        bool breakOut = false;
         IEnumerable<BoardTile> collection = _board.Cast<BoardTile>();
-        yield return new WaitUntil(() => collection.All(x => x.MatchPiece != null && x.MatchPiece.IsReady));
+
+        while(!breakOut)
+        {
+            breakOut = true;
+
+            foreach (var tile in collection)
+            {
+                if (tile.MatchPiece == null || !tile.MatchPiece.IsReady)
+                {
+                    breakOut = false;
+                    break;
+                }
+            }
+
+            yield return null;
+        }
+
         callback?.Invoke();
     }
 }

@@ -11,6 +11,7 @@ public class PoolableObject : MonoBehaviour
 
     protected virtual void OnDisable()
     {
-        ObjectPooler.Instance.ReturnObjectToPool(_label, gameObject);
+        if(ObjectPooler.Instance != null)
+            ObjectPooler.Instance.ReturnObjectToPool(_label, gameObject);
     }
 }
