@@ -50,6 +50,9 @@ public class ScoreManager : MonoBehaviour
 
     private void Update()
     {
+        if (_currentScore >= _totalScore)
+            return;
+
         _currentScore += SCORE_UPDATE_SPEED * Time.deltaTime;
         _currentScore = Mathf.Clamp(_currentScore, 0f, _totalScore);
 
@@ -72,7 +75,7 @@ public class ScoreManager : MonoBehaviour
             score.UpdateTextAndShow(position, piecesKilled * _scorePerPiece, _currentStreak);
         });
 
-        CameraShake.Instance.DoShake(_currentStreak);
+        Events.OnCameraShake?.Invoke(_currentStreak);
 
         Events.OnScoreUpdateToNextLevelPercent?.Invoke(Mathf.Abs(_baseLevelScore - _totalScore) / Mathf.Abs(_targetScore - _baseLevelScore));
         if (_totalScore >= _targetScore)

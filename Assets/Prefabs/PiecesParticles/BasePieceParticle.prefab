@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 373296678989684899}
   - component: {fileID: 2095391784383674050}
   - component: {fileID: 766734850335706827}
+  - component: {fileID: 4627036494814934406}
   m_Layer: 0
   m_Name: BasePieceParticle
   m_TagString: Untagged
@@ -4909,3 +4910,15 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &4627036494814934406
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3334062818564773443}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3cb10918fd3c90418881133fe012d2a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

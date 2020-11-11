@@ -2,7 +2,7 @@
 using TMPro;
 using UnityEngine;
 
-public class ScorePopup : MonoBehaviour
+public class ScorePopup : PoolableObject
 {
     const float ANIMATION_DURATION = 2f;
 

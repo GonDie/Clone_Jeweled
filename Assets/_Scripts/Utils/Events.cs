@@ -17,6 +17,8 @@ public static class Events
     public static FloatEvent OnScoreUpdateToNextLevelPercent;
 
     public static MouseStateEvent OnMouseStateEvent;
+
+    public static IntEvent OnCameraShake;
 }
 
 public delegate void SimpleEvent();

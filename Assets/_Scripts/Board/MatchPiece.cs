@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-public class MatchPiece : MonoBehaviour
+public class MatchPiece : PoolableObject
 {
     public PieceType pieceType;
 

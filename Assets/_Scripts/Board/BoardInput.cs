@@ -108,7 +108,8 @@ public class BoardInput : MonoBehaviour
                     else
                         dir = _selectedTile.Transform.position.x > hitInfo.point.x ? Direction.Left : Direction.Right;
 
-                    CheckTilesMatches(_selectedTile, _selectedTile.GetNeighbor(dir));
+                    _boardManager.CheckTilesMatches(_selectedTile, _selectedTile.GetNeighbor(dir));
+                    DeselectTile();
                 }
 
                 break;
@@ -144,7 +145,10 @@ public class BoardInput : MonoBehaviour
                     {
                         Direction dir;
                         if (_selectedTile != null && _selectedTile.IsNeighbor(otherTile, out dir))
-                            CheckTilesMatches(_selectedTile, otherTile);
+                        {
+                            _boardManager.CheckTilesMatches(_selectedTile, otherTile);
+                            DeselectTile();
+                        }
                         else
                             Events.OnMouseStateEvent(MouseState.ClickSelectedPiece);
                     }
@@ -156,34 +160,7 @@ public class BoardInput : MonoBehaviour
         }
     }
 
-    void CheckTilesMatches(BoardTile selectedTile, BoardTile otherTile)
-    {
-        List<BoardTile> matchesFrom = new List<BoardTile>();
-        List<BoardTile> matchesTo = new List<BoardTile>();
-
-        matchesFrom = _boardManager.CheckTileMatches(selectedTile, otherTile, otherTile.MatchPiece.pieceType);
-        matchesTo = _boardManager.CheckTileMatches(otherTile, selectedTile, selectedTile.MatchPiece.pieceType);
-        if (matchesFrom.Count >= GameManager.Instance.MatchThreshold || matchesTo.Count >= GameManager.Instance.MatchThreshold)
-        {
-            selectedTile.MatchPiece.ToggleSelectedPiece(false);
-            matchesFrom.AddRange(matchesTo);
-            _boardManager.ExchangeTilePieces(selectedTile, otherTile, () =>
-            {
-                SFXManager.Instance.PlaySFX(SFXType.MatchPiece);
-                _boardManager.KillPieces(matchesFrom);
-                _boardManager.TriggerScore(matchesFrom);
-            });
-
-            DeselectTile();
-        }
-        else
-        {
-            _boardManager.MoveToWrongPosition(selectedTile, otherTile, () => Events.OnMouseStateEvent(MouseState.Hovering));
-            DeselectTile();
-        }
-    }
-
-    void DeselectTile()
+    public void DeselectTile()
     {
         if (_selectedTile.MatchPiece != null)
             _selectedTile.MatchPiece.ToggleSelectedPiece(false);

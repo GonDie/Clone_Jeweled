@@ -6,8 +6,6 @@ using UnityEngine.AddressableAssets;
 
 public class BoardManager : MonoBehaviour
 {
-
-
     [SerializeField, SerializeReference]
     public ScriptableObject[] patterns;
 
@@ -254,7 +252,29 @@ public class BoardManager : MonoBehaviour
         }
     }
 
-    public List<BoardTile> CheckTileMatches(BoardTile tile, BoardTile ignoreOther, PieceType type)
+    public void CheckTilesMatches(BoardTile selectedTile, BoardTile otherTile)
+    {
+        List<BoardTile> matchesFrom = new List<BoardTile>();
+        List<BoardTile> matchesTo = new List<BoardTile>();
+
+        matchesFrom = CheckTileMatches(selectedTile, otherTile, otherTile.MatchPiece.pieceType);
+        matchesTo = CheckTileMatches(otherTile, selectedTile, selectedTile.MatchPiece.pieceType);
+        if (matchesFrom.Count >= GameManager.Instance.MatchThreshold || matchesTo.Count >= GameManager.Instance.MatchThreshold)
+        {
+            selectedTile.MatchPiece.ToggleSelectedPiece(false);
+            matchesFrom.AddRange(matchesTo);
+            ExchangeTilePieces(selectedTile, otherTile, () =>
+            {
+                SFXManager.Instance.PlaySFX(SFXType.MatchPiece);
+                KillPieces(matchesFrom);
+                TriggerScore(matchesFrom);
+            });
+        }
+        else
+            MoveToWrongPosition(selectedTile, otherTile, () => Events.OnMouseStateEvent(MouseState.Hovering));
+    }
+
+    List<BoardTile> CheckTileMatches(BoardTile tile, BoardTile ignoreOther, PieceType type)
     {
         List<BoardTile> tempMatches = new List<BoardTile>();
         List<BoardTile> tilesMatched = new List<BoardTile>();

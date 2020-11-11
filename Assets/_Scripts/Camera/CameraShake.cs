@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-public class CameraShake : Singleton<CameraShake>
+public class CameraShake : MonoBehaviour
 {
     public float shakeStrenght = 0.1f;
     public float shakeDuration = 0.5f;
@@ -12,15 +12,15 @@ public class CameraShake : Singleton<CameraShake>
 
     Vector3 _originPosition;
 
-    protected override void Awake()
+    void Awake()
     {
-        base.Awake();
-
         _transform = GetComponent<Transform>();
         _originPosition = _transform.position;
+
+        Events.OnCameraShake += OnCameraShake;
     }
 
-    public void DoShake(int magnitude)
+    void DoShake(int magnitude)
     {
         if (_shakeRoutine != null)
             StopCoroutine(_shakeRoutine);
@@ -46,5 +46,10 @@ public class CameraShake : Singleton<CameraShake>
 
         _transform.position = _originPosition;
         _shakeRoutine = null;
+    }
+
+    void OnCameraShake(int magnitude)
+    {
+        DoShake(magnitude);
     }
 }
