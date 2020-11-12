@@ -11,7 +11,7 @@ public class LinearPattern : ScriptableObject, IMatchPattern
         tempMatches.AddRange(GetTileMatchesOnDirection(tile, Direction.Right, type, ignoreOther));
         tempMatches.AddRange(GetTileMatchesOnDirection(tile, Direction.Left, type, ignoreOther));
 
-        if (tempMatches.Count >= GameManager.Instance.MatchThreshold - 1)
+        if (tempMatches.Count >= GameConfig.Instance.MatchThreshold - 1)
         {
             tilesMatched.Add(tile);
             tilesMatched.AddRange(tempMatches);
@@ -21,7 +21,7 @@ public class LinearPattern : ScriptableObject, IMatchPattern
         tempMatches.AddRange(GetTileMatchesOnDirection(tile, Direction.Up, type, ignoreOther));
         tempMatches.AddRange(GetTileMatchesOnDirection(tile, Direction.Down, type, ignoreOther));
 
-        if (tempMatches.Count >= GameManager.Instance.MatchThreshold - 1)
+        if (tempMatches.Count >= GameConfig.Instance.MatchThreshold - 1)
         {
             if (!tilesMatched.Contains(tile))
                 tilesMatched.Add(tile);

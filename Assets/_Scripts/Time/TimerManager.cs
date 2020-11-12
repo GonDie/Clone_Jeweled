@@ -49,6 +49,6 @@ public class TimerManager : MonoBehaviour
         if (_roundTime - _elapsedTime >= 0f)
             Events.OnTimeUpdate?.Invoke(_roundTime - _elapsedTime);
         else
-            GameManager.Instance.GameTimeout();
+            Events.CallGameTimeout?.Invoke();
     }
 }

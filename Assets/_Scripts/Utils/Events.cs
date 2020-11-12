@@ -2,6 +2,13 @@
 
 public static class Events
 {
+    public static SimpleEvent CallPrepareGame;
+    public static SimpleEvent CallStartGame;
+    public static SimpleEvent CallEndGame;
+    public static SimpleEvent CallResetGame;
+    public static SimpleEvent CallGameTimeout;
+    public static SimpleEvent CallGameWon;
+
     public static IntEvent OnGamePrepare;
     public static SimpleEvent OnGameStart;
     public static SimpleEvent OnGameEnd;

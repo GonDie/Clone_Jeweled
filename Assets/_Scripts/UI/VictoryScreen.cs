@@ -26,8 +26,8 @@ public class VictoryScreen : BaseScreen
     {
         yield return new WaitForSeconds(_playAgainDelay);
 
-        GameManager.Instance.PrepareGame();
+        Events.CallPrepareGame?.Invoke();
 
-        ToggleScreen(false, () => GameManager.Instance.StartGame());
+        ToggleScreen(false, () => Events.CallStartGame?.Invoke());
     }
 }

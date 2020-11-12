@@ -79,7 +79,7 @@ public class ScoreManager : MonoBehaviour
 
         Events.OnScoreUpdateToNextLevelPercent?.Invoke(Mathf.Abs(_baseLevelScore - _totalScore) / Mathf.Abs(_targetScore - _baseLevelScore));
         if (_totalScore >= _targetScore)
-            GameManager.Instance.GameWon();
+            Events.CallGameWon?.Invoke();
     }
 
     IEnumerator StreakResetCoroutine()

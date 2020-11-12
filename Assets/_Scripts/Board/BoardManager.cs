@@ -43,7 +43,7 @@ public class BoardManager : MonoBehaviour
         if (!_isPlaying) return;
 
         _tipTimer += Time.deltaTime;
-        if (_tipTimer >= GameManager.Instance.TipDelay && _tileTip != null && _mouseState == MouseState.Hovering)
+        if (_tipTimer >= GameConfig.Instance.TipDelay && _tileTip != null && _mouseState == MouseState.Hovering)
         {
             _tipTimer = 0f;
             _tileTip.MatchPiece.ToggleTip(true);
@@ -72,7 +72,7 @@ public class BoardManager : MonoBehaviour
     IEnumerator PrepareBoard()
     {
         Camera cam = Camera.main;
-        Vector2 boardSize = GameManager.Instance.BoardSize;
+        Vector2 boardSize = GameConfig.Instance.BoardSize;
 
         float screenWidth = Screen.width;
         float screenHeight = Screen.height;
@@ -101,7 +101,7 @@ public class BoardManager : MonoBehaviour
             for (int col = 0; col < boardSize.x; col++)
             {
                 tile = null;
-                Addressables.InstantiateAsync("BoardTile", GameManager.Instance.BoardContainer).Completed += handler =>
+                Addressables.InstantiateAsync("BoardTile", GameConfig.Instance.BoardContainer).Completed += handler =>
                 {
                     tile = handler.Result.GetComponent<BoardTile>();
                 };
@@ -131,7 +131,7 @@ public class BoardManager : MonoBehaviour
                 if (row < boardSize.y - 1) up = _board[row + 1, col];
                 else up = null;
 
-                _board[row, col].Init(GameManager.Instance.BoardContainer.position + cam.ScreenToWorldPoint(position), new Vector2(row, col), up, right, down, left);
+                _board[row, col].Init(GameConfig.Instance.BoardContainer.position + cam.ScreenToWorldPoint(position), new Vector2(row, col), up, right, down, left);
             }
 
             for (int col = 0; col < boardSize.x; col++)
@@ -140,7 +140,7 @@ public class BoardManager : MonoBehaviour
             }
         }
 
-        GameManager.Instance.PieceSize = Vector2.one * Mathf.Abs(_board[0, 0].Transform.localPosition.x - _board[0, 1].Transform.localPosition.x);
+        GameConfig.Instance.PieceSize = Vector2.one * Mathf.Abs(_board[0, 0].Transform.localPosition.x - _board[0, 1].Transform.localPosition.x);
 
         Transform spawnTrans;
         Vector3 spawnPosition = cam.ScreenToWorldPoint(Vector3.up * (screenHeight + 100f));
@@ -149,14 +149,14 @@ public class BoardManager : MonoBehaviour
         for (int col = 0; col < boardSize.x; col++)
         {
             spawnTrans = null;
-            Addressables.InstantiateAsync("Spawner", GameManager.Instance.SpawnersContainer).Completed += handler =>
+            Addressables.InstantiateAsync("Spawner", GameConfig.Instance.SpawnersContainer).Completed += handler =>
             {
                 spawnTrans = handler.Result.GetComponent<Transform>();
             };
 
             yield return new WaitUntil(() => spawnTrans != null);
 
-            spawnTrans.position = GameManager.Instance.BoardContainer.position + new Vector3(_board[0, col].Transform.localPosition.x, spawnPosition.y, 0f);
+            spawnTrans.position = GameConfig.Instance.BoardContainer.position + new Vector3(_board[0, col].Transform.localPosition.x, spawnPosition.y, 0f);
             _spawnersTransform[col] = spawnTrans;
         }
     }
@@ -165,7 +165,7 @@ public class BoardManager : MonoBehaviour
     {
         Events.OnMouseStateEvent(MouseState.Standby);
 
-        for (int col = 0; col < (int)GameManager.Instance.BoardSize.x; col++)
+        for (int col = 0; col < (int)GameConfig.Instance.BoardSize.x; col++)
         {
             StartCoroutine(FillColumn(col));
         }
@@ -180,7 +180,7 @@ public class BoardManager : MonoBehaviour
     {
         MatchPiece piece = null;
         BoardTile tile = null;
-        for(int row = 0; row < (int)GameManager.Instance.BoardSize.y; row++)
+        for(int row = 0; row < (int)GameConfig.Instance.BoardSize.y; row++)
         {
             piece = null;
             tile = _board[row, columnIndex];
@@ -206,9 +206,9 @@ public class BoardManager : MonoBehaviour
                 ObjectPooler.Instance.GetObject(((PieceType)Random.Range(0, (int)PieceType.Count)).ToString(), (MatchPiece pooledPiece) =>
                 {
                     piece = pooledPiece;
-                    piece.Transform.SetParent(GameManager.Instance.PiecesContainer);
+                    piece.Transform.SetParent(GameConfig.Instance.PiecesContainer);
                     piece.Transform.position = _spawnersTransform[columnIndex].position;
-                    piece.Transform.localScale = GameManager.Instance.PieceSize;
+                    piece.Transform.localScale = GameConfig.Instance.PieceSize;
                     _board[row, columnIndex].SetCurrentMatchPiece(piece, PieceMovementType.Drop);
                 });
 
@@ -223,19 +223,19 @@ public class BoardManager : MonoBehaviour
     {
         List<BoardTile> matches = new List<BoardTile>();
         List<BoardTile> tiles;
-        for (int row = 0; row < (int)GameManager.Instance.BoardSize.x; row++)
+        for (int row = 0; row < (int)GameConfig.Instance.BoardSize.x; row++)
         {
-            for (int col = 0; col < (int)GameManager.Instance.BoardSize.x; col++)
+            for (int col = 0; col < (int)GameConfig.Instance.BoardSize.x; col++)
             {
                 tiles = CheckTileMatches(_board[row, col], null, _board[row, col].MatchPiece.pieceType);
-                if (tiles.Count >= GameManager.Instance.MatchThreshold)
+                if (tiles.Count >= GameConfig.Instance.MatchThreshold)
                 {
                     matches.AddRange(tiles.Where(x => !matches.Contains(x)));
                 }
             }
         }
 
-        if (matches.Count >= GameManager.Instance.MatchThreshold)
+        if (matches.Count >= GameConfig.Instance.MatchThreshold)
         {
             SFXManager.Instance.PlaySFX(SFXType.MatchPiece);
             KillPieces(matches);
@@ -259,7 +259,7 @@ public class BoardManager : MonoBehaviour
 
         matchesFrom = CheckTileMatches(selectedTile, otherTile, otherTile.MatchPiece.pieceType);
         matchesTo = CheckTileMatches(otherTile, selectedTile, selectedTile.MatchPiece.pieceType);
-        if (matchesFrom.Count >= GameManager.Instance.MatchThreshold || matchesTo.Count >= GameManager.Instance.MatchThreshold)
+        if (matchesFrom.Count >= GameConfig.Instance.MatchThreshold || matchesTo.Count >= GameConfig.Instance.MatchThreshold)
         {
             selectedTile.MatchPiece.ToggleSelectedPiece(false);
             matchesFrom.AddRange(matchesTo);
@@ -296,14 +296,14 @@ public class BoardManager : MonoBehaviour
     BoardTile GetFirstPossibleMatch()
     {
         BoardTile tile = null;
-        for (int row = 0; row < GameManager.Instance.BoardSize.y; row++)
+        for (int row = 0; row < GameConfig.Instance.BoardSize.y; row++)
         {
-            for (int col = 0; col < GameManager.Instance.BoardSize.x; col++)
+            for (int col = 0; col < GameConfig.Instance.BoardSize.x; col++)
             {
                 for (int i = 0; i < (int)Direction.Count; i++)
                 {
                     if (_board[row, col].GetNeighbor((Direction)i) != null && 
-                        CheckTileMatches(_board[row, col].GetNeighbor((Direction)i), _board[row, col], _board[row, col].MatchPiece.pieceType).Count >= GameManager.Instance.MatchThreshold)
+                        CheckTileMatches(_board[row, col].GetNeighbor((Direction)i), _board[row, col], _board[row, col].MatchPiece.pieceType).Count >= GameConfig.Instance.MatchThreshold)
                     {
                         tile = _board[row, col];
                         return tile;
@@ -391,7 +391,6 @@ public class BoardManager : MonoBehaviour
         while(!breakOut)
         {
             breakOut = true;
-
             foreach (var tile in collection)
             {
                 if (tile.MatchPiece == null || !tile.MatchPiece.IsReady)

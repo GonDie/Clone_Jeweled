@@ -23,8 +23,8 @@ public class TimeoutScreen : BaseScreen
 
     public void PlayAgain()
     {
-        GameManager.Instance.ResetGame();
+        Events.CallResetGame?.Invoke();
 
-        ToggleScreen(false, () => GameManager.Instance.StartGame());
+        ToggleScreen(false, () => Events.CallStartGame?.Invoke());
     }
 }

@@ -1,51 +1,55 @@
 ﻿
 using UnityEngine;
 
-public class GameManager : Singleton<GameManager>
+public class GameManager : MonoBehaviour
 {
-    [Header("Containers")]
-    public Transform PiecesContainer;
-    public Transform BoardContainer;
-    public Transform ParticlesContainer;
-    public Transform SpawnersContainer;
-
-    [Header("Board Config")]
-    [SerializeField] Vector2 _boardSize = new Vector2(8, 8);
-    public Vector2 BoardSize { get => _boardSize; }
-    Vector2 _pieceSize = Vector2.one;
-    public Vector2 PieceSize { get => _pieceSize; set => _pieceSize = value; }
-    [SerializeField] float _tipDelay = 5f;
-    public float TipDelay { get => _tipDelay; }
-    [SerializeField] int _matchThreshold = 3;
-    public int MatchThreshold { get => _matchThreshold; }
-
     int _currentLevel = 0;
+
+    private void Awake()
+    {
+        Events.CallPrepareGame += PrepareGame;
+        Events.CallStartGame += StartGame;
+        Events.CallEndGame += EndGame;
+        Events.CallResetGame += ResetGame;
+        Events.CallGameTimeout += GameTimeout;
+        Events.CallGameWon += GameWon;
+    }
+
+    private void OnDestroy()
+    {
+        Events.CallPrepareGame -= PrepareGame;
+        Events.CallStartGame -= StartGame;
+        Events.CallEndGame -= EndGame;
+        Events.CallResetGame -= ResetGame;
+        Events.CallGameTimeout -= GameTimeout;
+        Events.CallGameWon -= GameWon;
+    }
 
     void Start()
     {
         PrepareGame();
     }
 
-    public void PrepareGame()
+    void PrepareGame()
     {
         Debug.Log("Prepare Game");
         _currentLevel++;
         Events.OnGamePrepare?.Invoke(_currentLevel);
     }
 
-    public void StartGame()
+    void StartGame()
     {
         Debug.Log("Start Game");
         Events.OnGameStart?.Invoke();
     }
 
-    public void EndGame()
+    void EndGame()
     {
         Debug.Log("End Game");
         Events.OnGameEnd?.Invoke();
     }
 
-    public void ResetGame()
+    void ResetGame()
     {
         Debug.Log("Reset Game");
 
@@ -54,13 +58,13 @@ public class GameManager : Singleton<GameManager>
         PrepareGame();
     }
 
-    public void GameTimeout()
+    void GameTimeout()
     {
         Debug.Log("Game Timeout");
         Events.OnGameTimeout?.Invoke();
     }
 
-    public void GameWon()
+    void GameWon()
     {
         Debug.Log("Game Won");
         Events.OnGameWon?.Invoke();

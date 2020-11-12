@@ -455,7 +455,7 @@ GameObject:
   m_Component:
   - component: {fileID: 331513417}
   m_Layer: 0
-  m_Name: Tiles
+  m_Name: BoardContainer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1456,6 +1456,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1185949348}
   - component: {fileID: 1185949347}
+  - component: {fileID: 1185949349}
   m_Layer: 0
   m_Name: _GameManager
   m_TagString: Untagged
@@ -1475,13 +1476,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2da8810c846f92640bd8e9c1b9ab7150, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PiecesContainer: {fileID: 1687787545}
-  BoardContainer: {fileID: 331513417}
-  ParticlesContainer: {fileID: 35180410}
-  SpawnersContainer: {fileID: 279323757}
-  _boardSize: {x: 8, y: 8}
-  _tipDelay: 5
-  _matchThreshold: 3
 --- !u!4 &1185949348
 Transform:
   m_ObjectHideFlags: 0
@@ -1496,6 +1490,25 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1185949349
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1185949346}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7026a58f8181b3e4c937b15bfc67dc50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PiecesContainer: {fileID: 1687787545}
+  BoardContainer: {fileID: 331513417}
+  ParticlesContainer: {fileID: 35180410}
+  SpawnersContainer: {fileID: 279323757}
+  _boardSize: {x: 8, y: 8}
+  _tipDelay: 5
+  _matchThreshold: 3
 --- !u!1 &1269119575
 GameObject:
   m_ObjectHideFlags: 0
